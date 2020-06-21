@@ -6,7 +6,6 @@ import {
     PermissionsAndroid,Platform,
     KeyboardAvoidingView
 } from 'react-native'
-import mobiledet from './mobiledet'
 import Geolocation from '@react-native-community/geolocation'
 import DeviceInfo from 'react-native-device-info'; 
 export default class Login extends Component {
@@ -39,58 +38,38 @@ export default class Login extends Component {
     
     submit()
     {   
-        let collection={}
+        var collection={}
+        Geolocation.getCurrentPosition(
+            (position) => {
+                console.log(position);
+                collection.mac = DeviceInfo.getMacAddress().then(),
+                collection.uq = DeviceInfo.getUniqueId();
+                collection.usn=this.state.email,
+                collection.password=this.state.password,
+                collection.lat=position.coords.latitude;
+                collection.long=position.coords.longitude;
+                fetch(`http://abhinavanand500.pythonanywhere.com/writedata`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(collection),
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                alert(data['message']);
+                })
+                .catch((error) => {
+                    alert(error);
+                console.error('Error:', error);
+                });
 
-        var options = {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-          };
-          
-          function success(pos) {
-            var crd;
-            crd= pos.coords;
-            // // window.lat1=crd.latitude;
-            // window.long1=crd.longitude;
-            // console.warn('Your current position is:');
-            // console.warn(`Latitude : ${crd.latitude}`);
-            // console.warn(`Longitude: ${crd.longitude}`);
-            // alert(`More or less ${crd.accuracy} meters.`);
-            window.lat1=crd.latitude;
-            window.long1=crd.longitude;
-          }
-          
-          function error(err) {
-            console.warn(`ERROR(${err.code}): ${err.message}`);
-          }
-          
-          Geolocation.getCurrentPosition(success, error, options);
-            collection.mac = DeviceInfo.getMacAddress().then(),
-            collection.usn=this.state.email,
-            collection.password=this.state.password,
-            collection.long=window.lat1,
-            collection.lat=window.long1,
-            // alert(collection);
-            
-            // console.warn(collection);
-            fetch(`http://192.168.29.96:8080/writedata`, {
-              method: 'POST', // or 'PUT'
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(collection),
-            })
-            // console.warn("1")
-            .then((response) => response.json())
-            .then((data) => {
-              alert(data['message']);
-              alert(data['code']);
-            })
-            // console.warn("3")
-            .catch((error) => {
-                alert(error);
-              console.error('Error:', error);
-            });
+            },
+            (error) => {
+                console.log(error.code, error.message);
+            },
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        );
            
 
     }
